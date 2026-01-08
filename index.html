@@ -4,59 +4,139 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Trợ lý Giáo viên</title>
+
 <script src="https://cdn.tailwindcss.com"></script>
 
 <style>
-/* ===== BASE ===== */
-.today{background:#dbeafe}
-.other-month{color:#9ca3af}
-.dot{width:6px;height:6px;border-radius:50%;display:inline-block;margin-right:2px}
-.status{font-size:12px;padding:2px 6px;border-radius:999px;color:#fff}
+/* ======================================================
+   BASELINE v1.3.3 – KHÔNG SỬA LOGIC
+====================================================== */
+.today { background:#dbeafe }
+.other-month { color:#9ca3af }
+.dot {
+  width:6px;
+  height:6px;
+  border-radius:50%;
+  display:inline-block;
+  margin-right:2px;
+}
+.status {
+  font-size:12px;
+  padding:2px 6px;
+  border-radius:999px;
+  color:#fff;
+}
 
-/* ===== BOTTOM BAR WITH CURVE ===== */
-.bottom-bar{
-  position:fixed;bottom:0;left:0;right:0;height:72px;background:#fff;
-  border-top-left-radius:24px;border-top-right-radius:24px;
+/* ===== selected day highlight (ADD v1.3.4) ===== */
+.selected-day {
+  outline:2px solid #2563eb;
+  outline-offset:-2px;
+}
+
+/* ===== heat map (ADD v1.3.4) ===== */
+.heat-1 { background:#f8fafc }
+.heat-2 { background:#eef2ff }
+.heat-3 { background:#e0e7ff }
+
+/* ======================================================
+   BOTTOM BAR – v1.3.3
+====================================================== */
+.bottom-bar {
+  position:fixed;
+  bottom:0;
+  left:0;
+  right:0;
+  height:72px;
+  background:#fff;
+  border-top-left-radius:24px;
+  border-top-right-radius:24px;
   box-shadow:0 -2px 10px rgba(0,0,0,.08);
-  display:flex;justify-content:space-around;align-items:center;z-index:1000
+  display:flex;
+  justify-content:space-around;
+  align-items:center;
+  z-index:1000;
 }
-.bottom-bar::before{
-  content:"";position:absolute;top:-28px;left:50%;transform:translateX(-50%);
-  width:84px;height:56px;background:#fff;border-radius:0 0 42px 42px;
-  box-shadow:0 -4px 10px rgba(0,0,0,.08)
+.bottom-bar::before {
+  content:"";
+  position:absolute;
+  top:-28px;
+  left:50%;
+  transform:translateX(-50%);
+  width:84px;
+  height:56px;
+  background:#fff;
+  border-radius:0 0 42px 42px;
+  box-shadow:0 -4px 10px rgba(0,0,0,.08);
 }
 
-/* ===== CENTER PLUS (UI POLISH v1.3.3) ===== */
-.center-plus{
-  position:fixed;bottom:36px;left:50%;transform:translateX(-50%);
-  width:66px;height:66px;border-radius:999px;
+/* ======================================================
+   CENTER PLUS – v1.3.3 UI POLISH
+====================================================== */
+.center-plus {
+  position:fixed;
+  bottom:36px;
+  left:50%;
+  transform:translateX(-50%);
+  width:66px;
+  height:66px;
+  border-radius:999px;
   background:linear-gradient(145deg,#3b82f6,#2563eb);
-  color:#fff;font-size:36px;font-weight:600;
-  display:flex;align-items:center;justify-content:center;
+  color:#fff;
+  font-size:36px;
+  font-weight:600;
+  display:flex;
+  align-items:center;
+  justify-content:center;
   z-index:1100;
   box-shadow:
     0 12px 28px rgba(37,99,235,.35),
     inset 0 1px 0 rgba(255,255,255,.35);
 }
-.center-plus:active{
+.center-plus:active {
   transform:translateX(-50%) scale(.96);
 }
 
-/* ===== MODAL ===== */
-.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:2000}
-.modal{background:#fff;width:92%;max-width:540px;border-radius:16px;padding:16px;max-height:90vh;overflow:auto}
+/* ======================================================
+   MODAL – v1.3.3
+====================================================== */
+.modal-bg {
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.45);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:2000;
+}
+.modal {
+  background:#fff;
+  width:92%;
+  max-width:540px;
+  border-radius:16px;
+  padding:16px;
+  max-height:90vh;
+  overflow:auto;
+}
 </style>
 </head>
 
 <body class="bg-gray-100 pb-24">
 
 <div class="max-w-md mx-auto bg-white min-h-screen">
-<header class="p-4 text-center font-bold text-xl border-b">📘 Trợ lý Giáo viên</header>
+<header class="p-4 text-center font-bold text-xl border-b">
+📘 Trợ lý Giáo viên
+</header>
 
 <main class="p-3">
 
-<!-- ================= TAB MONTH ================= -->
+<!-- ======================================================
+     TAB: LỊCH THÁNG
+====================================================== -->
 <section id="tab-month">
+
+  <!-- ADD v1.3.4: ROLE FILTER -->
+  <div id="roleFilter" class="flex flex-wrap gap-1 mb-2 text-xs"></div>
+
   <div class="flex justify-between mb-2">
     <button onclick="changeMonth(-1)">◀</button>
     <h2 id="monthTitle" class="font-semibold"></h2>
@@ -72,7 +152,9 @@
   <div id="monthGrid" class="grid grid-cols-7 gap-1"></div>
 </section>
 
-<!-- ================= TAB DAY ================= -->
+<!-- ======================================================
+     TAB: LỊCH NGÀY
+====================================================== -->
 <section id="tab-day" class="hidden">
   <h2 id="dayTitle" class="font-semibold mb-2"></h2>
   <div id="dayTasks" class="space-y-2 text-sm"></div>
@@ -84,7 +166,9 @@
 <!-- CENTER PLUS -->
 <button class="center-plus" onclick="openModal()">+</button>
 
-<!-- BOTTOM BAR -->
+<!-- ======================================================
+     BOTTOM BAR
+====================================================== -->
 <div class="bottom-bar">
   <button onclick="showTab('month')">📅<br><span class="text-xs">Lịch tháng</span></button>
   <button onclick="showTab('day')">⏰<br><span class="text-xs">Lịch ngày</span></button>
@@ -93,7 +177,9 @@
   <button>⚙️<br><span class="text-xs">Cài đặt</span></button>
 </div>
 
-<!-- ================= MODAL ================= -->
+<!-- ======================================================
+     MODAL: ADD / EDIT TASK (v1.3.3)
+====================================================== -->
 <div id="modalBg" class="modal-bg">
 <div class="modal">
 <h3 id="modalTitle" class="font-semibold mb-3">➕ Thêm công việc</h3>
@@ -156,152 +242,315 @@
 </div>
 </div>
 
+<!-- ======================================================
+     SCRIPT – PHẦN LOGIC (CONTINUE IN PART 2)
+====================================================== -->
 <script>
-/* ===== DATE UTILS ===== */
-const pad=n=>String(n).padStart(2,'0');
-const toYMD=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+/* ===== DATE UTILS (v1.3.3 – GIỮ NGUYÊN) ===== */
+const pad = n => String(n).padStart(2,'0');
+const toYMD = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
 
-/* ===== ROLE COLOR ===== */
-const ROLE_COLOR={
-  GVDL:'#2563eb',GVCN:'#16a34a',TTCM:'#7c3aed',
-  DANG:'#dc2626',DOAN:'#f97316',DOI:'#06b6d4',KHAC:'#6b7280'
+/* ===== ROLE COLOR (v1.3.3) ===== */
+const ROLE_COLOR = {
+  GVDL:'#2563eb',
+  GVCN:'#16a34a',
+  TTCM:'#7c3aed',
+  DANG:'#dc2626',
+  DOAN:'#f97316',
+  DOI:'#06b6d4',
+  KHAC:'#6b7280'
 };
 
-/* ===== STATE ===== */
-let tasks=JSON.parse(localStorage.getItem('tasks')||'[]');
-let viewDate=new Date();
-let selectedDate=new Date();
-let editingTaskId=null;
+/* ===== ROLE LABEL (ADD v1.3.4) ===== */
+const ROLE_LABEL = {
+  GVDL:'GVDL',
+  GVCN:'GVCN',
+  TTCM:'TTCM',
+  DANG:'Đảng',
+  DOAN:'Đoàn',
+  DOI:'Đội',
+  KHAC:'Khác'
+};
 
-/* ===== TAB ===== */
-function showTab(t){
-  document.getElementById('tab-month').classList.toggle('hidden',t!=='month');
-  document.getElementById('tab-day').classList.toggle('hidden',t!=='day');
-  if(t==='day') renderDay();
+/* ===== STATE (v1.3.3) ===== */
+let tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+let viewDate = new Date();
+let selectedDate = new Date();
+
+/* ===== ADD v1.3.3: EDIT MODE ===== */
+let editingTaskId = null;
+
+/* ===== ADD v1.3.4: ACTIVE ROLE FILTER ===== */
+let activeRoles = new Set(Object.keys(ROLE_COLOR));
+/* ======================================================
+   ROLE FILTER UI – ADD v1.3.4
+====================================================== */
+const roleFilter = document.getElementById('roleFilter');
+
+function renderRoleFilter(){
+  roleFilter.innerHTML = '';
+  Object.keys(ROLE_COLOR).forEach(role=>{
+    const btn = document.createElement('button');
+    btn.textContent = ROLE_LABEL[role];
+    btn.className = 'border px-2 py-0.5 rounded';
+    btn.style.borderColor = ROLE_COLOR[role];
+    if(activeRoles.has(role)) btn.style.background = '#dbeafe';
+
+    btn.onclick = () => {
+      activeRoles.has(role) ? activeRoles.delete(role) : activeRoles.add(role);
+      renderRoleFilter();
+      renderMonth();
+    };
+    roleFilter.appendChild(btn);
+  });
 }
 
-/* ===== MONTH ===== */
-function changeMonth(step){viewDate.setMonth(viewDate.getMonth()+step);renderMonth();}
-function renderMonth(){
-  monthGrid.innerHTML='';
-  const y=viewDate.getFullYear(),m=viewDate.getMonth();
-  monthTitle.innerText=`Tháng ${m+1}/${y}`;
+/* ======================================================
+   TAB CONTROL – v1.3.3
+====================================================== */
+function showTab(tab){
+  document.getElementById('tab-month').classList.toggle('hidden', tab !== 'month');
+  document.getElementById('tab-day').classList.toggle('hidden', tab !== 'day');
+  if(tab === 'day') renderDay();
+}
 
-  const firstDay=(new Date(y,m,1).getDay()+6)%7;
-  const start=new Date(y,m,1-firstDay);
+/* ======================================================
+   MONTH VIEW – v1.3.3 + MERGE v1.3.4
+====================================================== */
+function changeMonth(step){
+  viewDate.setMonth(viewDate.getMonth() + step);
+  renderMonth();
+}
+
+function renderMonth(){
+  monthGrid.innerHTML = '';
+  const y = viewDate.getFullYear();
+  const m = viewDate.getMonth();
+  monthTitle.innerText = `Tháng ${m+1}/${y}`;
+
+  const firstDay = (new Date(y,m,1).getDay() + 6) % 7;
+  const start = new Date(y,m,1-firstDay);
 
   for(let i=0;i<42;i++){
-    const d=new Date(start);d.setDate(start.getDate()+i);
-    const ymd=toYMD(d);
-    const cell=document.createElement('div');
-    cell.className='border rounded p-1 text-xs min-h-[60px]';
-    if(d.getMonth()!==m) cell.classList.add('other-month');
-    if(ymd===toYMD(new Date())) cell.classList.add('today');
-    cell.innerHTML=`<div>${d.getDate()}</div>`;
-    tasks.filter(t=>t.startDate<=ymd&&t.endDate>=ymd).forEach(t=>{
-      const dot=document.createElement('span');
-      dot.className='dot';
-      dot.style.background=ROLE_COLOR[t.role]||'#6b7280';
+    const d = new Date(start);
+    d.setDate(start.getDate()+i);
+    const ymd = toYMD(d);
+
+    const cell = document.createElement('div');
+    cell.className = 'border rounded p-1 text-xs min-h-[72px]';
+
+    if(d.getMonth() !== m) cell.classList.add('other-month');
+    if(ymd === toYMD(new Date())) cell.classList.add('today');
+    if(ymd === toYMD(selectedDate)) cell.classList.add('selected-day');
+
+    const dayTasks = tasks.filter(t =>
+      t.startDate <= ymd &&
+      t.endDate >= ymd &&
+      activeRoles.has(t.role)
+    );
+
+    /* heat */
+    if(dayTasks.length >= 4) cell.classList.add('heat-3');
+    else if(dayTasks.length >= 2) cell.classList.add('heat-2');
+    else cell.classList.add('heat-1');
+
+    cell.innerHTML = `<div>${d.getDate()}</div>`;
+
+    /* dots */
+    dayTasks.forEach(t=>{
+      const dot = document.createElement('span');
+      dot.className = 'dot';
+      dot.style.background = ROLE_COLOR[t.role];
       cell.appendChild(dot);
     });
-    cell.onclick=()=>{selectedDate=d;showTab('day')};
+
+    /* summary */
+    const count = {};
+    dayTasks.forEach(t => count[t.role] = (count[t.role]||0)+1);
+    Object.keys(count).forEach(role=>{
+      const s = document.createElement('div');
+      s.className = 'text-[10px] leading-tight';
+      s.style.color = ROLE_COLOR[role];
+      s.textContent = `${ROLE_LABEL[role]}×${count[role]}`;
+      cell.appendChild(s);
+    });
+
+    cell.onclick = ()=>{
+      selectedDate = d;
+      showTab('day');
+      renderMonth();
+    };
+
     monthGrid.appendChild(cell);
   }
 }
 
-/* ===== STATUS ===== */
-function getStatus(t){
-  const now=new Date();
-  const s=new Date(`${t.startDate}T${t.startTime}`);
-  const e=new Date(`${t.endDate}T${t.endTime}`);
-  if(now<s-2*864e5) return ['Chưa bắt đầu','#6b7280'];
-  if(now<s) return ['Sắp bắt đầu','#f59e0b'];
-  if(now>=s&&now<=e-864e5) return ['Đang diễn ra','#2563eb'];
-  if(now>e-864e5&&now<=e) return ['Sắp kết thúc','#dc2626'];
+/* ======================================================
+   STATUS LOGIC – v1.3.3
+====================================================== */
+function getStatus(task){
+  const now = new Date();
+  const s = new Date(`${task.startDate}T${task.startTime}`);
+  const e = new Date(`${task.endDate}T${task.endTime}`);
+
+  if(now < s - 2*864e5) return ['Chưa bắt đầu','#6b7280'];
+  if(now < s) return ['Sắp bắt đầu','#f59e0b'];
+  if(now >= s && now <= e - 864e5) return ['Đang diễn ra','#2563eb'];
+  if(now > e - 864e5 && now <= e) return ['Sắp kết thúc','#dc2626'];
   return ['Kết thúc','#374151'];
 }
 
-/* ===== DAY ===== */
+/* ======================================================
+   DAY VIEW – v1.3.3 (FULL)
+====================================================== */
 function renderDay(){
-  dayTitle.innerText=selectedDate.toLocaleDateString('vi-VN');
-  dayTasks.innerHTML='';
-  const ymd=toYMD(selectedDate);
-  tasks.filter(t=>t.startDate<=ymd&&t.endDate>=ymd).forEach(t=>{
-    const [text,color]=getStatus(t);
-    dayTasks.innerHTML+=`
-      <div class="border p-2 rounded">
-        <b style="color:${ROLE_COLOR[t.role]}">${t.title}</b>
-        <span class="status ml-2" style="background:${color}">${text}</span><br>
-        ${t.startDate} ${t.startTime} → ${t.endDate} ${t.endTime}
-        <div class="mt-1 text-right">
-          <button onclick="editTask(${t.id})">✏️</button>
-          <button onclick="deleteTask(${t.id})">🗑️</button>
+  dayTitle.innerText = selectedDate.toLocaleDateString('vi-VN');
+  dayTasks.innerHTML = '';
+  const ymd = toYMD(selectedDate);
+
+  tasks.filter(t => t.startDate <= ymd && t.endDate >= ymd)
+    .forEach(task=>{
+      const [text,color] = getStatus(task);
+      dayTasks.innerHTML += `
+        <div class="border p-2 rounded">
+          <b style="color:${ROLE_COLOR[task.role]}">${task.title}</b>
+          <span class="status ml-2" style="background:${color}">${text}</span><br>
+          ${task.startDate} ${task.startTime} → ${task.endDate} ${task.endTime}
+          <div class="mt-1 text-right">
+            <button onclick="editTask(${task.id})">✏️</button>
+            <button onclick="deleteTask(${task.id})">🗑️</button>
+          </div>
         </div>
-      </div>`;
-  });
+      `;
+    });
 }
 
-/* ===== EDIT / DELETE ===== */
+/* ======================================================
+   EDIT / DELETE – v1.3.3
+====================================================== */
 function editTask(id){
-  const t=tasks.find(x=>x.id===id);if(!t)return;
-  editingTaskId=id;modalTitle.innerText='✏️ Chỉnh sửa công việc';saveBtn.innerText='Cập nhật';
-  modalBg.style.display='flex';
-  mTitle.value=t.title;mRole.value=t.role;mDetail.value=t.detail;
-  mStartDate.value=t.startDate;mStartTime.value=t.startTime;
-  mEndDate.value=t.endDate;mEndTime.value=t.endTime;
-  document.querySelector(`input[name="mode"][value="${t.mode}"]`).checked=true;
-  document.querySelector(`input[name="repeat"][value="${t.repeat}"]`).checked=true;
-  n1d.checked=t.notify.n1d;n1h.checked=t.notify.n1h;nStart.checked=t.notify.nStart;
-  nHalf.checked=t.notify.nHalf;nEnd1d.checked=t.notify.nEnd1d;
-  nEnd1h.checked=t.notify.nEnd1h;nEnd.checked=t.notify.nEnd;
-}
-function deleteTask(id){
-  if(!confirm('Xoá công việc này?'))return;
-  tasks=tasks.filter(t=>t.id!==id);
-  localStorage.setItem('tasks',JSON.stringify(tasks));
-  renderMonth();renderDay();
+  const t = tasks.find(x => x.id === id);
+  if(!t) return;
+
+  editingTaskId = id;
+  modalTitle.innerText = '✏️ Chỉnh sửa công việc';
+  saveBtn.innerText = 'Cập nhật';
+  modalBg.style.display = 'flex';
+
+  mTitle.value = t.title;
+  mRole.value = t.role;
+  mDetail.value = t.detail;
+  mStartDate.value = t.startDate;
+  mStartTime.value = t.startTime;
+  mEndDate.value = t.endDate;
+  mEndTime.value = t.endTime;
+
+  document.querySelector(`input[name="mode"][value="${t.mode}"]`).checked = true;
+  document.querySelector(`input[name="repeat"][value="${t.repeat}"]`).checked = true;
+
+  n1d.checked = t.notify.n1d;
+  n1h.checked = t.notify.n1h;
+  nStart.checked = t.notify.nStart;
+  nHalf.checked = t.notify.nHalf;
+  nEnd1d.checked = t.notify.nEnd1d;
+  nEnd1h.checked = t.notify.nEnd1h;
+  nEnd.checked = t.notify.nEnd;
 }
 
-/* ===== MODAL ACTIONS ===== */
-function openModal(){
-  editingTaskId=null;modalTitle.innerText='➕ Thêm công việc';saveBtn.innerText='Lưu';
-  modalBg.style.display='flex';
-  const d=toYMD(selectedDate);
-  mStartDate.value=d;mEndDate.value=d;
-  const now=new Date();
-  const h=pad(now.getHours());
-  mStartTime.value=`${h}:00`;
-  mEndTime.value=`${pad((now.getHours()+1)%24)}:00`;
+function deleteTask(id){
+  if(!confirm('Xoá công việc này?')) return;
+  tasks = tasks.filter(t => t.id !== id);
+  localStorage.setItem('tasks', JSON.stringify(tasks));
+  renderMonth();
+  renderDay();
 }
-function closeModal(){modalBg.style.display='none';}
+
+/* ======================================================
+   MODAL ACTIONS – v1.3.3
+====================================================== */
+function openModal(){
+  editingTaskId = null;
+  modalTitle.innerText = '➕ Thêm công việc';
+  saveBtn.innerText = 'Lưu';
+  modalBg.style.display = 'flex';
+
+  const d = toYMD(selectedDate);
+  mStartDate.value = d;
+  mEndDate.value = d;
+
+  const now = new Date();
+  const h = pad(now.getHours());
+  mStartTime.value = `${h}:00`;
+  mEndTime.value = `${pad((now.getHours()+1)%24)}:00`;
+}
+
+function closeModal(){
+  modalBg.style.display = 'none';
+}
+
 function saveTask(){
-  const mode=document.querySelector('input[name="mode"]:checked').value;
-  const repeat=document.querySelector('input[name="repeat"]:checked').value;
+  const mode = document.querySelector('input[name="mode"]:checked').value;
+  const repeat = document.querySelector('input[name="repeat"]:checked').value;
+
   if(editingTaskId){
-    const i=tasks.findIndex(t=>t.id===editingTaskId);
-    if(i>-1){
-      tasks[i]={...tasks[i],
-        title:mTitle.value,role:mRole.value,detail:mDetail.value,
-        startDate:mStartDate.value,endDate:mEndDate.value,
-        startTime:mStartTime.value,endTime:mEndTime.value,
-        mode,repeat,
-        notify:{n1d:n1d.checked,n1h:n1h.checked,nStart:nStart.checked,nHalf:nHalf.checked,nEnd1d:nEnd1d.checked,nEnd1h:nEnd1h.checked,nEnd:nEnd.checked}
+    const i = tasks.findIndex(t => t.id === editingTaskId);
+    if(i > -1){
+      tasks[i] = {
+        ...tasks[i],
+        title: mTitle.value,
+        role: mRole.value,
+        detail: mDetail.value,
+        startDate: mStartDate.value,
+        endDate: mEndDate.value,
+        startTime: mStartTime.value,
+        endTime: mEndTime.value,
+        mode,
+        repeat,
+        notify:{
+          n1d:n1d.checked,
+          n1h:n1h.checked,
+          nStart:nStart.checked,
+          nHalf:nHalf.checked,
+          nEnd1d:nEnd1d.checked,
+          nEnd1h:nEnd1h.checked,
+          nEnd:nEnd.checked
+        }
       };
     }
-  }else{
+  } else {
     tasks.push({
-      id:Date.now(),title:mTitle.value,role:mRole.value,detail:mDetail.value,
-      startDate:mStartDate.value,endDate:mEndDate.value,
-      startTime:mStartTime.value,endTime:mEndTime.value,
-      mode,repeat,
-      notify:{n1d:n1d.checked,n1h:n1h.checked,nStart:nStart.checked,nHalf:nHalf.checked,nEnd1d:nEnd1d.checked,nEnd1h:nEnd1h.checked,nEnd:nEnd.checked}
+      id: Date.now(),
+      title: mTitle.value,
+      role: mRole.value,
+      detail: mDetail.value,
+      startDate: mStartDate.value,
+      endDate: mEndDate.value,
+      startTime: mStartTime.value,
+      endTime: mEndTime.value,
+      mode,
+      repeat,
+      notify:{
+        n1d:n1d.checked,
+        n1h:n1h.checked,
+        nStart:nStart.checked,
+        nHalf:nHalf.checked,
+        nEnd1d:nEnd1d.checked,
+        nEnd1h:nEnd1h.checked,
+        nEnd:nEnd.checked
+      }
     });
   }
-  localStorage.setItem('tasks',JSON.stringify(tasks));
-  closeModal();renderMonth();renderDay();
+
+  localStorage.setItem('tasks', JSON.stringify(tasks));
+  closeModal();
+  renderMonth();
+  renderDay();
 }
 
-/* ===== INIT ===== */
+/* ======================================================
+   INIT
+====================================================== */
+renderRoleFilter();
 renderMonth();
 </script>
 

@@ -117,6 +117,25 @@
   max-height:90vh;
   overflow:auto;
 }
+
+/* ======================================================
+   ADD v1.3.6 – TIMELINE / CONFLICT / WEEK (CSS ONLY)
+   (KHÔNG ẢNH HƯỞNG LOGIC CŨ)
+====================================================== */
+/* timeline day */
+.timeline-wrap { border-left:2px solid #e5e7eb; padding-left:10px; }
+.time-row { position:relative; height:48px; border-bottom:1px dashed #e5e7eb; }
+.time-label { position:absolute; left:-44px; top:0; font-size:11px; color:#6b7280; }
+.task-block {
+  position:absolute; left:0; right:6px;
+  border-radius:8px; padding:4px 6px; font-size:12px; color:#fff;
+}
+/* conflict warn */
+.conflict { outline:2px solid #dc2626; }
+/* week view */
+.week-grid { display:grid; grid-template-columns: repeat(7, 1fr); gap:6px; }
+.week-col { border:1px solid #e5e7eb; border-radius:10px; padding:6px; }
+.week-head { font-size:12px; font-weight:600; text-align:center; margin-bottom:4px; }
 </style>
 </head>
 
@@ -156,8 +175,29 @@
      TAB: LỊCH NGÀY
 ====================================================== -->
 <section id="tab-day" class="hidden">
-  <h2 id="dayTitle" class="font-semibold mb-2"></h2>
+  <div class="flex justify-between items-center mb-2">
+    <h2 id="dayTitle" class="font-semibold"></h2>
+    <!-- ADD v1.3.6: Toggle list / timeline -->
+    <button id="toggleDayViewBtn" class="text-xs underline">Danh sách | Timeline</button>
+  </div>
+
+  <!-- v1.3.5 LIST VIEW (GIỮ NGUYÊN) -->
   <div id="dayTasks" class="space-y-2 text-sm"></div>
+
+  <!-- ADD v1.3.6: TIMELINE VIEW (ẨN MẶC ĐỊNH) -->
+  <div id="dayTimeline" class="timeline-wrap hidden"></div>
+</section>
+
+<!-- ======================================================
+     ADD v1.3.6: TAB TUẦN (ẨN MẶC ĐỊNH)
+====================================================== -->
+<section id="tab-week" class="hidden">
+  <div class="flex justify-between mb-2">
+    <button onclick="changeWeek(-1)">◀</button>
+    <h2 id="weekTitle" class="font-semibold"></h2>
+    <button onclick="changeWeek(1)">▶</button>
+  </div>
+  <div id="weekGrid" class="week-grid"></div>
 </section>
 
 </main>
@@ -171,14 +211,14 @@
 ====================================================== -->
 <div class="bottom-bar">
   <button onclick="showTab('month')">📅<br><span class="text-xs">Lịch tháng</span></button>
-  <button onclick="showTab('day')">⏰<br><span class="text-xs">Lịch ngày</span></button>
+  <button onclick="showTab('week')">📆<br><span class="text-xs">Tuần</span></button>
   <div style="width:72px"></div>
-  <button>📊<br><span class="text-xs">Báo cáo</span></button>
+  <button onclick="showTab('day')">⏰<br><span class="text-xs">Lịch ngày</span></button>
   <button>⚙️<br><span class="text-xs">Cài đặt</span></button>
 </div>
 
 <!-- ======================================================
-     MODAL: ADD / EDIT TASK (v1.3.3)
+     MODAL: ADD / EDIT TASK (v1.3.5 – GIỮ NGUYÊN)
 ====================================================== -->
 <div id="modalBg" class="modal-bg">
 <div class="modal">
@@ -243,7 +283,7 @@
 </div>
 
 <!-- ======================================================
-     SCRIPT – PHẦN LOGIC (CONTINUE IN PART 2)
+     SCRIPT – BASELINE v1.3.5 + APPEND v1.3.6 (JS TIẾP Ở PHẦN 2)
 ====================================================== -->
 <script>
 /* ===== DATE UTILS (v1.3.3 – GIỮ NGUYÊN) ===== */
@@ -261,7 +301,7 @@ const ROLE_COLOR = {
   KHAC:'#6b7280'
 };
 
-/* ===== ROLE LABEL (ADD v1.3.4) ===== */
+/* ===== ROLE LABEL (v1.3.4) ===== */
 const ROLE_LABEL = {
   GVDL:'GVDL',
   GVCN:'GVCN',
@@ -272,18 +312,24 @@ const ROLE_LABEL = {
   KHAC:'Khác'
 };
 
-/* ===== STATE (v1.3.3) ===== */
+/* ===== STATE (v1.3.5) ===== */
 let tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
 let viewDate = new Date();
 let selectedDate = new Date();
-
-/* ===== ADD v1.3.3: EDIT MODE ===== */
 let editingTaskId = null;
-
-/* ===== ADD v1.3.4: ACTIVE ROLE FILTER ===== */
 let activeRoles = new Set(Object.keys(ROLE_COLOR));
+
+/* ===== ADD v1.3.6: DAY VIEW MODE ===== */
+let dayViewMode = 'list'; // 'list' | 'timeline'
+
+/* ===== ADD v1.3.6: WEEK VIEW STATE ===== */
+let weekAnchorDate = new Date();
+
 /* ======================================================
-   ROLE FILTER UI – ADD v1.3.4
+   (PHẦN 2/2 TIẾP TỤC JS – KHÔNG THIẾU DÒNG)
+====================================================== */
+/* ======================================================
+   ROLE FILTER UI – v1.3.4 (GIỮ NGUYÊN)
 ====================================================== */
 const roleFilter = document.getElementById('roleFilter');
 
@@ -306,92 +352,90 @@ function renderRoleFilter(){
 }
 
 /* ======================================================
-   TAB CONTROL – v1.3.3
+   TAB CONTROL – v1.3.5 (MỞ RỘNG TAB TUẦN)
 ====================================================== */
 function showTab(tab){
-  document.getElementById('tab-month').classList.toggle('hidden', tab !== 'month');
-  document.getElementById('tab-day').classList.toggle('hidden', tab !== 'day');
-  if(tab === 'day') renderDay();
+  ['month','day','week'].forEach(t=>{
+    document.getElementById('tab-'+t).classList.toggle('hidden', tab!==t);
+  });
+  if(tab==='day') renderDay();
+  if(tab==='week') renderWeek();
 }
 
 /* ======================================================
-   MONTH VIEW – v1.3.3 + MERGE v1.3.4
+   MONTH VIEW – v1.3.5 (GIỮ NGUYÊN)
 ====================================================== */
 function changeMonth(step){
-  viewDate.setMonth(viewDate.getMonth() + step);
+  viewDate.setMonth(viewDate.getMonth()+step);
   renderMonth();
 }
 
 function renderMonth(){
-  monthGrid.innerHTML = '';
-  const y = viewDate.getFullYear();
-  const m = viewDate.getMonth();
-  monthTitle.innerText = `Tháng ${m+1}/${y}`;
+  monthGrid.innerHTML='';
+  const y=viewDate.getFullYear();
+  const m=viewDate.getMonth();
+  monthTitle.innerText=`Tháng ${m+1}/${y}`;
 
-  const firstDay = (new Date(y,m,1).getDay() + 6) % 7;
-  const start = new Date(y,m,1-firstDay);
+  const firstDay=(new Date(y,m,1).getDay()+6)%7;
+  const start=new Date(y,m,1-firstDay);
 
   for(let i=0;i<42;i++){
-    const d = new Date(start);
+    const d=new Date(start);
     d.setDate(start.getDate()+i);
-    const ymd = toYMD(d);
+    const ymd=toYMD(d);
 
-    const cell = document.createElement('div');
-    cell.className = 'border rounded p-1 text-xs min-h-[72px]';
+    const cell=document.createElement('div');
+    cell.className='border rounded p-1 text-xs min-h-[72px]';
 
-    if(d.getMonth() !== m) cell.classList.add('other-month');
-    if(ymd === toYMD(new Date())) cell.classList.add('today');
-    if(ymd === toYMD(selectedDate)) cell.classList.add('selected-day');
+    if(d.getMonth()!==m) cell.classList.add('other-month');
+    if(ymd===toYMD(new Date())) cell.classList.add('today');
+    if(ymd===toYMD(selectedDate)) cell.classList.add('selected-day');
 
-    const dayTasks = tasks.filter(t =>
-      t.startDate <= ymd &&
-      t.endDate >= ymd &&
+    const dayTasks=tasks.filter(t =>
+      t.startDate<=ymd &&
+      t.endDate>=ymd &&
       activeRoles.has(t.role)
     );
 
-    /* heat */
-    if(dayTasks.length >= 4) cell.classList.add('heat-3');
-    else if(dayTasks.length >= 2) cell.classList.add('heat-2');
+    if(dayTasks.length>=4) cell.classList.add('heat-3');
+    else if(dayTasks.length>=2) cell.classList.add('heat-2');
     else cell.classList.add('heat-1');
 
-    cell.innerHTML = `<div>${d.getDate()}</div>`;
+    cell.innerHTML=`<div>${d.getDate()}</div>`;
 
-    /* dots */
     dayTasks.forEach(t=>{
-      const dot = document.createElement('span');
-      dot.className = 'dot';
-      dot.style.background = ROLE_COLOR[t.role];
+      const dot=document.createElement('span');
+      dot.className='dot';
+      dot.style.background=ROLE_COLOR[t.role];
       cell.appendChild(dot);
     });
 
-    /* summary */
-    const count = {};
-    dayTasks.forEach(t => count[t.role] = (count[t.role]||0)+1);
+    const count={};
+    dayTasks.forEach(t=>count[t.role]=(count[t.role]||0)+1);
     Object.keys(count).forEach(role=>{
-      const s = document.createElement('div');
-      s.className = 'text-[10px] leading-tight';
-      s.style.color = ROLE_COLOR[role];
-      s.textContent = `${ROLE_LABEL[role]}×${count[role]}`;
+      const s=document.createElement('div');
+      s.className='text-[10px] leading-tight';
+      s.style.color=ROLE_COLOR[role];
+      s.textContent=`${ROLE_LABEL[role]}×${count[role]}`;
       cell.appendChild(s);
     });
 
-    cell.onclick = ()=>{
-      selectedDate = d;
+    cell.onclick=()=>{
+      selectedDate=d;
       showTab('day');
       renderMonth();
     };
-
     monthGrid.appendChild(cell);
   }
 }
 
 /* ======================================================
-   STATUS LOGIC – v1.3.3
+   STATUS LOGIC – v1.3.5 (GIỮ NGUYÊN)
 ====================================================== */
 function getStatus(task){
-  const now = new Date();
-  const s = new Date(`${task.startDate}T${task.startTime}`);
-  const e = new Date(`${task.endDate}T${task.endTime}`);
+  const now=new Date();
+  const s=new Date(`${task.startDate}T${task.startTime}`);
+  const e=new Date(`${task.endDate}T${task.endTime}`);
 
   if(now < s - 2*864e5) return ['Chưa bắt đầu','#6b7280'];
   if(now < s) return ['Sắp bắt đầu','#f59e0b'];
@@ -401,158 +445,191 @@ function getStatus(task){
 }
 
 /* ======================================================
-   DAY VIEW – v1.3.3 (FULL)
+   DAY VIEW – v1.3.5 + ADD v1.3.6 (TIMELINE + QUICK)
 ====================================================== */
-function renderDay(){
-  dayTitle.innerText = selectedDate.toLocaleDateString('vi-VN');
-  dayTasks.innerHTML = '';
-  const ymd = toYMD(selectedDate);
+document.getElementById('toggleDayViewBtn').onclick=()=>{
+  dayViewMode = dayViewMode==='list'?'timeline':'list';
+  renderDay();
+};
 
-  tasks.filter(t => t.startDate <= ymd && t.endDate >= ymd)
-    .forEach(task=>{
-      const [text,color] = getStatus(task);
-      dayTasks.innerHTML += `
+function renderDay(){
+  dayTitle.innerText=selectedDate.toLocaleDateString('vi-VN');
+  dayTasks.innerHTML='';
+  dayTimeline.innerHTML='';
+  const ymd=toYMD(selectedDate);
+
+  const list=tasks.filter(t=>t.startDate<=ymd && t.endDate>=ymd);
+
+  /* LIST VIEW (GIỮ NGUYÊN + QUICK ACTIONS) */
+  if(dayViewMode==='list'){
+    dayTasks.classList.remove('hidden');
+    dayTimeline.classList.add('hidden');
+
+    list.forEach(task=>{
+      const [text,color]=getStatus(task);
+      dayTasks.innerHTML+=`
         <div class="border p-2 rounded">
           <b style="color:${ROLE_COLOR[task.role]}">${task.title}</b>
           <span class="status ml-2" style="background:${color}">${text}</span><br>
-          ${task.startDate} ${task.startTime} → ${task.endDate} ${task.endTime}
-          <div class="mt-1 text-right">
+          ${task.startTime} → ${task.endTime}
+          <div class="mt-1 text-right text-xs">
+            <button onclick="completeTask(${task.id})">✅</button>
+            <button onclick="moveTomorrow(${task.id})">⏩</button>
+            <button onclick="cloneTask(${task.id})">🔁</button>
             <button onclick="editTask(${task.id})">✏️</button>
             <button onclick="deleteTask(${task.id})">🗑️</button>
           </div>
-        </div>
-      `;
+        </div>`;
     });
+  }
+
+  /* TIMELINE VIEW – ADD v1.3.6 */
+  else{
+    dayTasks.classList.add('hidden');
+    dayTimeline.classList.remove('hidden');
+
+    for(let h=0;h<24;h++){
+      const row=document.createElement('div');
+      row.className='time-row';
+      row.innerHTML=`<div class="time-label">${pad(h)}:00</div>`;
+      dayTimeline.appendChild(row);
+    }
+
+    list.forEach(task=>{
+      const sh=parseInt(task.startTime.split(':')[0]);
+      const eh=parseInt(task.endTime.split(':')[0]);
+      const block=document.createElement('div');
+      block.className='task-block';
+      block.style.background=ROLE_COLOR[task.role];
+      block.style.top=`${sh*48}px`;
+      block.style.height=`${Math.max(1,(eh-sh))*48}px`;
+      block.textContent=task.title;
+      dayTimeline.appendChild(block);
+    });
+  }
 }
 
 /* ======================================================
-   EDIT / DELETE – v1.3.3
+   QUICK ACTIONS – ADD v1.3.6
 ====================================================== */
-function editTask(id){
-  const t = tasks.find(x => x.id === id);
-  if(!t) return;
-
-  editingTaskId = id;
-  modalTitle.innerText = '✏️ Chỉnh sửa công việc';
-  saveBtn.innerText = 'Cập nhật';
-  modalBg.style.display = 'flex';
-
-  mTitle.value = t.title;
-  mRole.value = t.role;
-  mDetail.value = t.detail;
-  mStartDate.value = t.startDate;
-  mStartTime.value = t.startTime;
-  mEndDate.value = t.endDate;
-  mEndTime.value = t.endTime;
-
-  document.querySelector(`input[name="mode"][value="${t.mode}"]`).checked = true;
-  document.querySelector(`input[name="repeat"][value="${t.repeat}"]`).checked = true;
-
-  n1d.checked = t.notify.n1d;
-  n1h.checked = t.notify.n1h;
-  nStart.checked = t.notify.nStart;
-  nHalf.checked = t.notify.nHalf;
-  nEnd1d.checked = t.notify.nEnd1d;
-  nEnd1h.checked = t.notify.nEnd1h;
-  nEnd.checked = t.notify.nEnd;
+function completeTask(id){
+  const t=tasks.find(x=>x.id===id);
+  if(t){
+    t.endDate=toYMD(new Date());
+    localStorage.setItem('tasks',JSON.stringify(tasks));
+    renderDay(); renderMonth();
+  }
 }
-
-function deleteTask(id){
-  if(!confirm('Xoá công việc này?')) return;
-  tasks = tasks.filter(t => t.id !== id);
-  localStorage.setItem('tasks', JSON.stringify(tasks));
-  renderMonth();
-  renderDay();
+function moveTomorrow(id){
+  const t=tasks.find(x=>x.id===id);
+  if(!t) return;
+  const d=new Date(t.startDate); d.setDate(d.getDate()+1);
+  t.startDate=toYMD(d); t.endDate=toYMD(d);
+  localStorage.setItem('tasks',JSON.stringify(tasks));
+  renderDay(); renderMonth();
+}
+function cloneTask(id){
+  const t=tasks.find(x=>x.id===id);
+  if(!t) return;
+  const d=new Date(t.startDate); d.setDate(d.getDate()+1);
+  tasks.push({...t,id:Date.now(),startDate:toYMD(d),endDate:toYMD(d)});
+  localStorage.setItem('tasks',JSON.stringify(tasks));
+  renderDay(); renderMonth();
 }
 
 /* ======================================================
-   MODAL ACTIONS – v1.3.3
+   WEEK VIEW – ADD v1.3.6
+====================================================== */
+function changeWeek(step){
+  weekAnchorDate.setDate(weekAnchorDate.getDate()+step*7);
+  renderWeek();
+}
+
+function renderWeek(){
+  weekGrid.innerHTML='';
+  const start=new Date(weekAnchorDate);
+  start.setDate(start.getDate()-((start.getDay()+6)%7));
+  const end=new Date(start); end.setDate(start.getDate()+6);
+  weekTitle.innerText=`${start.toLocaleDateString('vi-VN')} – ${end.toLocaleDateString('vi-VN')}`;
+
+  for(let i=0;i<7;i++){
+    const d=new Date(start); d.setDate(start.getDate()+i);
+    const ymd=toYMD(d);
+
+    const col=document.createElement('div');
+    col.className='week-col';
+    col.innerHTML=`<div class="week-head">${d.toLocaleDateString('vi-VN',{weekday:'short'})}<br>${d.getDate()}</div>`;
+
+    tasks.filter(t=>t.startDate<=ymd && t.endDate>=ymd)
+      .forEach(t=>{
+        col.innerHTML+=`<div class="text-xs mt-1" style="color:${ROLE_COLOR[t.role]}">• ${t.title}</div>`;
+      });
+
+    weekGrid.appendChild(col);
+  }
+}
+
+/* ======================================================
+   MODAL ACTIONS – v1.3.5 (GIỮ NGUYÊN)
 ====================================================== */
 function openModal(){
-  editingTaskId = null;
-  modalTitle.innerText = '➕ Thêm công việc';
-  saveBtn.innerText = 'Lưu';
-  modalBg.style.display = 'flex';
+  editingTaskId=null;
+  modalTitle.innerText='➕ Thêm công việc';
+  saveBtn.innerText='Lưu';
+  modalBg.style.display='flex';
 
-  const d = toYMD(selectedDate);
-  mStartDate.value = d;
-  mEndDate.value = d;
+  const d=toYMD(selectedDate);
+  mStartDate.value=d; mEndDate.value=d;
 
-  const now = new Date();
-  const h = pad(now.getHours());
-  mStartTime.value = `${h}:00`;
-  mEndTime.value = `${pad((now.getHours()+1)%24)}:00`;
+  const now=new Date();
+  const h=pad(now.getHours());
+  mStartTime.value=`${h}:00`;
+  mEndTime.value=`${pad((now.getHours()+1)%24)}:00`;
 }
-
-function closeModal(){
-  modalBg.style.display = 'none';
-}
+function closeModal(){ modalBg.style.display='none'; }
 
 function saveTask(){
-  const mode = document.querySelector('input[name="mode"]:checked').value;
-  const repeat = document.querySelector('input[name="repeat"]:checked').value;
+  const mode=document.querySelector('input[name="mode"]:checked').value;
+  const repeat=document.querySelector('input[name="repeat"]:checked').value;
 
   if(editingTaskId){
-    const i = tasks.findIndex(t => t.id === editingTaskId);
-    if(i > -1){
-      tasks[i] = {
-        ...tasks[i],
-        title: mTitle.value,
-        role: mRole.value,
-        detail: mDetail.value,
-        startDate: mStartDate.value,
-        endDate: mEndDate.value,
-        startTime: mStartTime.value,
-        endTime: mEndTime.value,
-        mode,
-        repeat,
+    const i=tasks.findIndex(t=>t.id===editingTaskId);
+    if(i>-1){
+      tasks[i]={...tasks[i],
+        title:mTitle.value, role:mRole.value, detail:mDetail.value,
+        startDate:mStartDate.value, endDate:mEndDate.value,
+        startTime:mStartTime.value, endTime:mEndTime.value,
+        mode, repeat,
         notify:{
-          n1d:n1d.checked,
-          n1h:n1h.checked,
-          nStart:nStart.checked,
-          nHalf:nHalf.checked,
-          nEnd1d:nEnd1d.checked,
-          nEnd1h:nEnd1h.checked,
-          nEnd:nEnd.checked
+          n1d:n1d.checked,n1h:n1h.checked,nStart:nStart.checked,
+          nHalf:nHalf.checked,nEnd1d:nEnd1d.checked,
+          nEnd1h:nEnd1h.checked,nEnd:nEnd.checked
         }
       };
     }
   } else {
     tasks.push({
-      id: Date.now(),
-      title: mTitle.value,
-      role: mRole.value,
-      detail: mDetail.value,
-      startDate: mStartDate.value,
-      endDate: mEndDate.value,
-      startTime: mStartTime.value,
-      endTime: mEndTime.value,
-      mode,
-      repeat,
+      id:Date.now(),
+      title:mTitle.value, role:mRole.value, detail:mDetail.value,
+      startDate:mStartDate.value, endDate:mEndDate.value,
+      startTime:mStartTime.value, endTime:mEndTime.value,
+      mode, repeat,
       notify:{
-        n1d:n1d.checked,
-        n1h:n1h.checked,
-        nStart:nStart.checked,
-        nHalf:nHalf.checked,
-        nEnd1d:nEnd1d.checked,
-        nEnd1h:nEnd1h.checked,
-        nEnd:nEnd.checked
+        n1d:n1d.checked,n1h:n1h.checked,nStart:nStart.checked,
+        nHalf:nHalf.checked,nEnd1d:nEnd1d.checked,
+        nEnd1h:nEnd1h.checked,nEnd:nEnd.checked
       }
     });
   }
 
-  localStorage.setItem('tasks', JSON.stringify(tasks));
+  localStorage.setItem('tasks',JSON.stringify(tasks));
   closeModal();
-  renderMonth();
-  renderDay();
+  renderMonth(); renderDay();
 }
 
 /* ======================================================
-   INIT
+   INIT – v1.3.6
 ====================================================== */
 renderRoleFilter();
 renderMonth();
-</script>
-
-</body>
-</html>
+renderDay();

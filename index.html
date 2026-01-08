@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Teacher Assist</title>
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100">
+  <div class="max-w-md mx-auto p-4">
+    <h1 class="text-2xl font-bold mb-4 text-center">📘 Trợ lý Giáo viên</h1>
+
+    <div class="bg-white p-4 rounded shadow">
+      <input id="taskInput" class="w-full border p-2 rounded mb-2"
+             placeholder="Nhập công việc..." />
+      <button onclick="addTask()"
+              class="w-full bg-blue-600 text-white py-2 rounded">
+        ➕ Thêm việc
+      </button>
+    </div>
+
+    <ul id="taskList" class="mt-4 space-y-2"></ul>
+  </div>
+
+  <script>
+    const taskList = document.getElementById('taskList');
+
+    function loadTasks() {
+      const tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+      taskList.innerHTML = '';
+      tasks.forEach((t, i) => {
+        const li = document.createElement('li');
+        li.className = 'bg-white p-2 rounded shadow flex justify-between';
+        li.innerHTML = \`
+          <span>\${t}</span>
+          <button onclick="removeTask(\${i})" class="text-red-500">✖</button>
+        \`;
+        taskList.appendChild(li);
+      });
+    }
+
+    function addTask() {
+      const input = document.getElementById('taskInput');
+      if (!input.value.trim()) return;
+      const tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+      tasks.push(input.value.trim());
+      localStorage.setItem('tasks', JSON.stringify(tasks));
+      input.value = '';
+      loadTasks();
+    }
+
+    function removeTask(i) {
+      const tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+      tasks.splice(i, 1);
+      localStorage.setItem('tasks', JSON.stringify(tasks));
+      loadTasks();
+    }
+
+    loadTasks();
+  </script>
+</body>
+</html>

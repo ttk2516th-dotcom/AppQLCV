@@ -8,7 +8,7 @@
 <script src="https://cdn.tailwindcss.com"></script>
 
 <style>
-/* ===== BASE ===== */
+/* ===== BASE (v1.3) ===== */
 .today { background:#dbeafe }
 .other-month { color:#9ca3af }
 .dot {
@@ -22,10 +22,10 @@
   font-size:12px;
   padding:2px 6px;
   border-radius:6px;
-  background:#e5e7eb;
+  color:#fff;
 }
 
-/* ===== BOTTOM BAR WITH CURVE ===== */
+/* ===== BOTTOM BAR WITH CURVE (v1.3) ===== */
 .bottom-bar {
   position:fixed;
   bottom:0;
@@ -54,7 +54,7 @@
   box-shadow:0 -4px 10px rgba(0,0,0,.08);
 }
 
-/* ===== CENTER PLUS ===== */
+/* ===== CENTER PLUS (v1.3) ===== */
 .center-plus {
   position:fixed;
   bottom:36px;
@@ -73,7 +73,7 @@
   box-shadow:0 10px 25px rgba(0,0,0,.3);
 }
 
-/* ===== MODAL ===== */
+/* ===== MODAL (v1.3) ===== */
 .modal-bg {
   position:fixed;
   inset:0;
@@ -112,9 +112,10 @@
     <button onclick="changeMonth(1)">▶</button>
   </div>
 
+  <!-- ADD v1.3.1: WEEK HEADER MONDAY FIRST -->
   <div class="grid grid-cols-7 text-center text-xs font-semibold mb-1">
-    <div>CN</div><div>T2</div><div>T3</div><div>T4</div>
-    <div>T5</div><div>T6</div><div>T7</div>
+    <div>T2</div><div>T3</div><div>T4</div><div>T5</div>
+    <div>T6</div><div>T7</div><div>CN</div>
   </div>
 
   <div id="monthGrid" class="grid grid-cols-7 gap-1"></div>
@@ -129,10 +130,8 @@
 </main>
 </div>
 
-<!-- CENTER PLUS -->
 <button class="center-plus" onclick="openModal()">＋</button>
 
-<!-- BOTTOM BAR -->
 <div class="bottom-bar">
   <button onclick="showTab('month')">📅<br>Tháng</button>
   <button onclick="showTab('day')">⏰<br>Ngày</button>
@@ -141,16 +140,13 @@
   <button>⚙️<br>Cài đặt</button>
 </div>
 
-<!-- ================= MODAL ================= -->
+<!-- ================= MODAL (v1.3 – GIỮ NGUYÊN) ================= -->
 <div id="modalBg" class="modal-bg">
 <div class="modal">
 <h3 class="font-semibold mb-3">➕ Thêm công việc</h3>
 
-<!-- 1. TÊN -->
-<input id="mTitle" class="w-full border p-2 rounded mb-2"
- placeholder="Tên công việc">
+<input id="mTitle" class="w-full border p-2 rounded mb-2" placeholder="Tên công việc">
 
-<!-- 2. VAI TRÒ -->
 <select id="mRole" class="w-full border p-2 rounded mb-2">
   <option value="GVDL">Giáo viên dạy lớp</option>
   <option value="GVCN">Giáo viên chủ nhiệm</option>
@@ -161,11 +157,8 @@
   <option value="KHAC">Khác</option>
 </select>
 
-<!-- 3. CHI TIẾT -->
-<textarea id="mDetail" class="w-full border p-2 rounded mb-2"
- placeholder="Chi tiết công việc"></textarea>
+<textarea id="mDetail" class="w-full border p-2 rounded mb-2" placeholder="Chi tiết công việc"></textarea>
 
-<!-- 4–7. THỜI GIAN -->
 <label class="text-xs">Ngày bắt đầu</label>
 <input id="mStartDate" type="date" class="w-full border p-2 rounded mb-2">
 
@@ -178,14 +171,12 @@
 <label class="text-xs">Giờ kết thúc</label>
 <input id="mEndTime" type="time" class="w-full border p-2 rounded mb-3">
 
-<!-- 8. CHẾ ĐỘ -->
 <div class="border p-2 rounded mb-2 text-sm">
 <b>Chế độ công việc</b><br>
 <label><input type="radio" name="mode" value="FIXED" checked> Đúng hạn</label><br>
 <label><input type="radio" name="mode" value="FLEX"> Linh động</label>
 </div>
 
-<!-- 9. LẶP LẠI -->
 <div class="border p-2 rounded mb-2 text-sm">
 <b>Lặp lại</b><br>
 <label><input type="radio" name="repeat" value="NONE" checked> Không lặp</label><br>
@@ -194,7 +185,6 @@
 <label><input type="radio" name="repeat" value="MONTHLY"> Theo ngày trong tháng</label>
 </div>
 
-<!-- 10. THÔNG BÁO -->
 <div class="border p-2 rounded mb-3 text-sm">
 <b>🔔 Thông báo</b><br>
 <label><input type="checkbox" id="n1d"> Trước 1 ngày</label><br>
@@ -208,30 +198,40 @@
 
 <div class="flex justify-end gap-3">
 <button onclick="closeModal()">Huỷ</button>
-<button class="bg-blue-600 text-white px-4 py-2 rounded"
- onclick="saveTask()">Lưu</button>
+<button class="bg-blue-600 text-white px-4 py-2 rounded" onclick="saveTask()">Lưu</button>
 </div>
 </div>
 </div>
 
 <script>
-/* ================= DATE UTILS (NO TIMEZONE BUG) ================= */
+/* ===== DATE UTILS (v1.3 – KHÔNG ĐỔI) ===== */
 const pad = n => String(n).padStart(2,'0');
 const toYMD = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
 
-/* ================= STATE ================= */
+/* ===== ADD v1.3.1: ROLE COLOR ===== */
+const ROLE_COLOR = {
+  GVDL:'#2563eb',
+  GVCN:'#16a34a',
+  TTCM:'#7c3aed',
+  DANG:'#dc2626',
+  DOAN:'#f97316',
+  DOI:'#06b6d4',
+  KHAC:'#6b7280'
+};
+
+/* ===== STATE (v1.3) ===== */
 let tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
 let viewDate = new Date();
 let selectedDate = new Date();
 
-/* ================= TAB ================= */
+/* ===== TAB (v1.3) ===== */
 function showTab(t){
   document.getElementById('tab-month').classList.toggle('hidden', t !== 'month');
   document.getElementById('tab-day').classList.toggle('hidden', t !== 'day');
   if(t === 'day') renderDay();
 }
 
-/* ================= MONTH ================= */
+/* ===== MONTH (v1.3 + ADD v1.3.1 OFFSET) ===== */
 function changeMonth(step){
   viewDate.setMonth(viewDate.getMonth() + step);
   renderMonth();
@@ -243,8 +243,9 @@ function renderMonth(){
   const m = viewDate.getMonth();
   monthTitle.innerText = `Tháng ${m+1}/${y}`;
 
-  const first = new Date(y, m, 1).getDay();
-  const start = new Date(y, m, 1 - first);
+  /* ADD v1.3.1: MONDAY-FIRST OFFSET */
+  const firstDay = (new Date(y, m, 1).getDay() + 6) % 7;
+  const start = new Date(y, m, 1 - firstDay);
 
   for(let i=0;i<42;i++){
     const d = new Date(start);
@@ -260,8 +261,11 @@ function renderMonth(){
 
     tasks
       .filter(t => t.startDate <= ymd && t.endDate >= ymd)
-      .forEach(() => {
-        cell.innerHTML += `<span class="dot bg-blue-600"></span>`;
+      .forEach(t => {
+        const dot = document.createElement('span');
+        dot.className = 'dot';
+        dot.style.background = ROLE_COLOR[t.role] || '#6b7280';
+        cell.appendChild(dot);
       });
 
     cell.onclick = () => { selectedDate = d; showTab('day'); };
@@ -269,7 +273,20 @@ function renderMonth(){
   }
 }
 
-/* ================= DAY ================= */
+/* ===== ADD v1.3.1: STATUS LOGIC ===== */
+function getStatus(t){
+  const now = new Date();
+  const s = new Date(`${t.startDate}T${t.startTime}`);
+  const e = new Date(`${t.endDate}T${t.endTime}`);
+
+  if(now < s - 2*864e5) return ['Chưa bắt đầu','#6b7280'];
+  if(now < s) return ['Sắp bắt đầu','#f59e0b'];
+  if(now >= s && now <= e - 864e5) return ['Đang diễn ra','#2563eb'];
+  if(now > e - 864e5 && now <= e) return ['Sắp kết thúc','#dc2626'];
+  return ['Kết thúc','#374151'];
+}
+
+/* ===== DAY (v1.3 + ADD STATUS) ===== */
 function renderDay(){
   dayTitle.innerText = selectedDate.toLocaleDateString('vi-VN');
   dayTasks.innerHTML = '';
@@ -278,26 +295,26 @@ function renderDay(){
   tasks
     .filter(t => t.startDate <= ymd && t.endDate >= ymd)
     .forEach(t => {
+      const [text,color] = getStatus(t);
       dayTasks.innerHTML += `
         <div class="border p-2 rounded">
-          <b>${t.title}</b><br>
+          <b style="color:${ROLE_COLOR[t.role]}">${t.title}</b>
+          <span class="status ml-2" style="background:${color}">${text}</span><br>
           ${t.startDate} ${t.startTime} → ${t.endDate} ${t.endTime}
         </div>`;
     });
 }
 
-/* ================= MODAL ================= */
+/* ===== MODAL ACTIONS (v1.3 – GIỮ NGUYÊN) ===== */
 function openModal(){
   modalBg.style.display = 'flex';
   const d = toYMD(selectedDate);
   mStartDate.value = d;
   mEndDate.value = d;
 }
-
 function closeModal(){
   modalBg.style.display = 'none';
 }
-
 function saveTask(){
   const mode = document.querySelector('input[name="mode"]:checked').value;
   const repeat = document.querySelector('input[name="repeat"]:checked').value;
@@ -330,7 +347,7 @@ function saveTask(){
   renderDay();
 }
 
-/* ================= INIT ================= */
+/* ===== INIT ===== */
 renderMonth();
 </script>
 

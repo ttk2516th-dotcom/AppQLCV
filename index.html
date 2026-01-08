@@ -10,53 +10,73 @@
 <style>
 .today{background:#dbeafe}
 .other-month{color:#9ca3af}
-.fab{
+.dot{width:6px;height:6px;border-radius:50%;display:inline-block;margin-right:2px}
+
+/* ===== BOTTOM BAR ===== */
+.bottom-bar{
   position:fixed;
-  right:20px;
-  bottom:100px;
-  width:56px;
-  height:56px;
+  bottom:0;
+  left:0;
+  right:0;
+  height:64px;
+  background:#fff;
+  border-top:1px solid #e5e7eb;
+  display:flex;
+  justify-content:space-around;
+  align-items:center;
+  z-index:1000;
+}
+
+/* ===== CENTER + BUTTON ===== */
+.center-plus{
+  position:fixed;
+  bottom:32px;          /* GẮN DÍNH VỚI THANH TAB */
+  left:50%;
+  transform:translateX(-50%);
+  width:64px;
+  height:64px;
   border-radius:50%;
   background:#2563eb;
   color:#fff;
-  font-size:30px;
-  z-index:9999;
+  font-size:34px;
   display:flex;
   align-items:center;
   justify-content:center;
-  box-shadow:0 6px 18px rgba(0,0,0,.3);
+  z-index:1100;
+  box-shadow:0 8px 20px rgba(0,0,0,.3);
 }
+
+/* ===== MODAL ===== */
 .modal-bg{
   position:fixed;
   inset:0;
-  background:rgba(0,0,0,.4);
+  background:rgba(0,0,0,.45);
   display:none;
   align-items:center;
   justify-content:center;
-  z-index:10000;
+  z-index:2000;
 }
 .modal{
   background:#fff;
-  width:90%;
-  max-width:420px;
-  border-radius:14px;
+  width:92%;
+  max-width:440px;
+  border-radius:16px;
   padding:16px;
   max-height:90vh;
   overflow:auto;
 }
-.dot{width:6px;height:6px;border-radius:50%;display:inline-block;margin-right:2px}
 </style>
 </head>
 
-<body class="bg-gray-100">
+<body class="bg-gray-100 pb-20">
 
-<div class="max-w-md mx-auto min-h-screen bg-white flex flex-col">
+<div class="max-w-md mx-auto bg-white min-h-screen">
 
 <header class="p-4 text-center font-bold text-xl border-b">
 📘 Trợ lý Giáo viên
 </header>
 
-<main class="flex-1 overflow-auto p-3">
+<main class="p-3">
 
 <!-- ===== TAB THÁNG ===== -->
 <section id="tab-month">
@@ -81,30 +101,33 @@
 </section>
 
 <section id="tab-report" class="hidden">
-  <p class="text-sm text-gray-500">📊 Báo cáo (giai đoạn sau)</p>
+  <p class="text-sm text-gray-500">📊 Báo cáo (sẽ triển khai)</p>
 </section>
 
 <section id="tab-settings" class="hidden">
-  <p class="text-sm text-gray-500">⚙️ Chủ đề mẫu (giai đoạn sau)</p>
+  <p class="text-sm text-gray-500">⚙️ Chủ đề mẫu (sẽ triển khai)</p>
 </section>
 
 </main>
-
-<nav class="grid grid-cols-4 border-t text-xs text-center h-16 bg-white">
-<button onclick="showTab('month')">📅<br>Tháng</button>
-<button onclick="showTab('day')">⏰<br>Ngày</button>
-<button onclick="showTab('report')">📊<br>Báo cáo</button>
-<button onclick="showTab('settings')">⚙️<br>Cài đặt</button>
-</nav>
-
 </div>
 
-<button class="fab" onclick="openModal()">＋</button>
+<!-- ===== CENTER PLUS ===== -->
+<button class="center-plus" onclick="openModal()">＋</button>
 
-<!-- ===== MODAL ===== -->
+<!-- ===== BOTTOM NAV ===== -->
+<div class="bottom-bar">
+  <button onclick="showTab('month')">📅<br>Tháng</button>
+  <button onclick="showTab('day')">⏰<br>Ngày</button>
+  <div style="width:64px"></div>
+  <button onclick="showTab('report')">📊<br>Báo cáo</button>
+  <button onclick="showTab('settings')">⚙️<br>Cài đặt</button>
+</div>
+
+<!-- ===== MODAL ADD TASK ===== -->
 <div id="modalBg" class="modal-bg">
 <div class="modal">
-<h3 class="font-semibold mb-3">➕ Thêm công việc</h3>
+
+<h3 class="font-semibold mb-2">➕ Thêm công việc</h3>
 
 <input id="mTitle" class="w-full border p-2 rounded mb-2" placeholder="Tên công việc">
 
@@ -118,18 +141,49 @@
   <option value="KHAC">Khác</option>
 </select>
 
-<textarea id="mDetail" class="w-full border p-2 rounded mb-2" placeholder="Chi tiết công việc"></textarea>
+<textarea id="mDetail" class="w-full border p-2 rounded mb-2"
+ placeholder="Chi tiết công việc"></textarea>
 
 <label class="text-xs">Bắt đầu</label>
-<input id="mStart" type="datetime-local" class="w-full border p-2 rounded mb-2" onchange="syncEnd()">
+<input id="mStart" type="datetime-local"
+ class="w-full border p-2 rounded mb-2" onchange="syncEnd()">
 
 <label class="text-xs">Kết thúc</label>
-<input id="mEnd" type="datetime-local" class="w-full border p-2 rounded mb-3">
+<input id="mEnd" type="datetime-local"
+ class="w-full border p-2 rounded mb-2">
+
+<!-- ===== CHẾ ĐỘ ===== -->
+<select id="mMode" class="w-full border p-2 rounded mb-2">
+  <option value="FIXED">CV đúng hạn</option>
+  <option value="FLEX">CV linh động</option>
+</select>
+
+<!-- ===== LẶP LẠI ===== -->
+<div class="border rounded p-2 mb-2 text-sm">
+<b>Lặp lại</b><br>
+<label><input type="checkbox" id="rHour"> Theo giờ</label><br>
+<label><input type="checkbox" id="rDay"> Theo ngày</label><br>
+<label><input type="checkbox" id="rMonth"> Theo tháng</label>
+</div>
+
+<!-- ===== THÔNG BÁO ===== -->
+<div class="border rounded p-2 mb-3 text-sm">
+<b>🔔 Thông báo</b><br>
+<label><input type="checkbox" id="n1d"> Trước 1 ngày</label><br>
+<label><input type="checkbox" id="n1h"> Trước 1 giờ</label><br>
+<label><input type="checkbox" id="nStart"> Khi bắt đầu</label><br>
+<label><input type="checkbox" id="nHalf"> Khi trôi qua 50%</label><br>
+<label><input type="checkbox" id="nEnd1d"> Trước khi kết thúc 1 ngày</label><br>
+<label><input type="checkbox" id="nEnd1h"> Trước khi kết thúc 1 giờ</label><br>
+<label><input type="checkbox" id="nEnd"> Khi đã kết thúc</label>
+</div>
 
 <div class="flex justify-end gap-3">
 <button onclick="closeModal()">Huỷ</button>
-<button class="bg-blue-600 text-white px-4 py-2 rounded" onclick="saveTask()">Lưu</button>
+<button class="bg-blue-600 text-white px-4 py-2 rounded"
+ onclick="saveTask()">Lưu</button>
 </div>
+
 </div>
 </div>
 
@@ -145,9 +199,9 @@ let selectedDate=new Date();
 
 function showTab(t){
 ['month','day','report','settings'].forEach(x=>{
-document.getElementById('tab-'+x).classList.add('hidden');
+document.getElementById('tab-'+x)?.classList.add('hidden');
 });
-document.getElementById('tab-'+t).classList.remove('hidden');
+document.getElementById('tab-'+t)?.classList.remove('hidden');
 if(t==='day') renderDay();
 }
 
@@ -174,13 +228,13 @@ if(d.getMonth()!==m) cell.classList.add('other-month');
 if(isToday(d)) cell.classList.add('today');
 
 cell.innerHTML=`<div>${d.getDate()}</div>`;
-const dayTasks=tasks.filter(t=>sameDay(new Date(t.start),d));
-dayTasks.forEach(t=>{
+tasks.filter(t=>sameDay(new Date(t.start),d)).forEach(t=>{
 const dot=document.createElement('span');
 dot.className='dot';
 dot.style.background=ROLE_COLOR[t.role];
 cell.appendChild(dot);
 });
+
 cell.onclick=()=>{selectedDate=d;showTab('day')};
 grid.appendChild(cell);
 }
@@ -190,11 +244,8 @@ function renderDay(){
 dayTitle.innerText='📅 '+formatDate(selectedDate);
 const list=document.getElementById('dayTasks');
 list.innerHTML='';
-const dayTasks=tasks.filter(t=>sameDay(new Date(t.start),selectedDate));
-if(dayTasks.length===0){
-list.innerHTML='<p class="text-gray-500">Chưa có công việc</p>';
-}
-dayTasks.forEach(t=>{
+tasks.filter(t=>sameDay(new Date(t.start),selectedDate))
+.forEach(t=>{
 list.innerHTML+=`
 <div class="border p-2 rounded">
 <b style="color:${ROLE_COLOR[t.role]}">${t.title}</b><br>
@@ -219,10 +270,26 @@ title:mTitle.value,
 detail:mDetail.value,
 role:mRole.value,
 start:mStart.value,
-end:mEnd.value
+end:mEnd.value,
+mode:mMode.value,
+repeat:{
+hour:rHour.checked,
+day:rDay.checked,
+month:rMonth.checked
+},
+notify:{
+beforeDay:n1d.checked,
+beforeHour:n1h.checked,
+start:nStart.checked,
+half:nHalf.checked,
+endDay:nEnd1d.checked,
+endHour:nEnd1h.checked,
+end:nEnd.checked
+}
 });
 localStorage.setItem('tasks',JSON.stringify(tasks));
-closeModal(); renderMonth();
+closeModal();
+renderMonth();
 }
 
 function sameDay(a,b){return a.toDateString()===b.toDateString()}

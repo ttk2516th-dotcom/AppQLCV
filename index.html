@@ -4,76 +4,115 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Trợ lý Giáo viên</title>
+
 <script src="https://cdn.tailwindcss.com"></script>
 
 <style>
 .today{background:#dbeafe}
 .other-month{color:#9ca3af}
 .dot{width:6px;height:6px;border-radius:50%;display:inline-block;margin-right:2px}
-.bottom-bar{position:fixed;bottom:0;left:0;right:0;height:64px;background:#fff;border-top:1px solid #e5e7eb;display:flex;justify-content:space-around;align-items:center;z-index:1000}
-.center-plus{position:fixed;bottom:32px;left:50%;transform:translateX(-50%);width:64px;height:64px;border-radius:50%;background:#2563eb;color:#fff;font-size:34px;display:flex;align-items:center;justify-content:center;z-index:1100;box-shadow:0 8px 20px rgba(0,0,0,.3)}
-.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:2000}
-.modal{background:#fff;width:92%;max-width:460px;border-radius:16px;padding:16px;max-height:90vh;overflow:auto}
+.status{font-size:12px;padding:2px 6px;border-radius:6px;background:#e5e7eb}
+.bottom-bar{
+  position:fixed;bottom:0;left:0;right:0;height:64px;
+  background:#fff;border-top:1px solid #e5e7eb;
+  display:flex;justify-content:space-around;align-items:center;z-index:1000
+}
+.center-plus{
+  position:fixed;bottom:32px;left:50%;transform:translateX(-50%);
+  width:64px;height:64px;border-radius:50%;
+  background:#2563eb;color:#fff;font-size:34px;
+  display:flex;align-items:center;justify-content:center;
+  z-index:1100;box-shadow:0 8px 20px rgba(0,0,0,.3)
+}
+.modal-bg{
+  position:fixed;inset:0;background:rgba(0,0,0,.45);
+  display:none;align-items:center;justify-content:center;z-index:2000
+}
+.modal{
+  background:#fff;width:92%;max-width:480px;border-radius:16px;
+  padding:16px;max-height:90vh;overflow:auto
+}
 </style>
 </head>
 
 <body class="bg-gray-100 pb-20">
+
 <div class="max-w-md mx-auto bg-white min-h-screen">
 <header class="p-4 text-center font-bold text-xl border-b">📘 Trợ lý Giáo viên</header>
+
 <main class="p-3">
 
+<!-- TAB THÁNG -->
 <section id="tab-month">
   <div class="flex justify-between mb-2">
     <button onclick="changeMonth(-1)">◀</button>
     <h2 id="monthTitle" class="font-semibold"></h2>
     <button onclick="changeMonth(1)">▶</button>
   </div>
+
   <div class="grid grid-cols-7 text-center text-xs font-semibold mb-1">
-    <div>CN</div><div>T2</div><div>T3</div><div>T4</div><div>T5</div><div>T6</div><div>T7</div>
+    <div>CN</div><div>T2</div><div>T3</div><div>T4</div>
+    <div>T5</div><div>T6</div><div>T7</div>
   </div>
+
   <div id="monthGrid" class="grid grid-cols-7 gap-1"></div>
 </section>
 
+<!-- TAB NGÀY -->
 <section id="tab-day" class="hidden">
   <h2 id="dayTitle" class="font-semibold mb-2"></h2>
   <div id="dayTasks" class="space-y-2 text-sm"></div>
 </section>
 
+<section id="tab-report" class="hidden text-sm text-gray-500">📊 Báo cáo (sẽ phát triển)</section>
+<section id="tab-settings" class="hidden text-sm text-gray-500">⚙️ Cài đặt (sẽ phát triển)</section>
+
 </main>
 </div>
 
+<!-- NÚT + -->
 <button class="center-plus" onclick="openModal()">＋</button>
 
+<!-- THANH ĐIỀU HƯỚNG -->
 <div class="bottom-bar">
-<button onclick="showTab('month')">📅<br>Tháng</button>
-<button onclick="showTab('day')">⏰<br>Ngày</button>
-<div style="width:64px"></div>
-<button>📊<br>Báo cáo</button>
-<button>⚙️<br>Cài đặt</button>
+  <button onclick="showTab('month')">📅<br>Tháng</button>
+  <button onclick="showTab('day')">⏰<br>Ngày</button>
+  <div style="width:64px"></div>
+  <button onclick="showTab('report')">📊<br>Báo cáo</button>
+  <button onclick="showTab('settings')">⚙️<br>Cài đặt</button>
 </div>
 
 <!-- MODAL -->
 <div id="modalBg" class="modal-bg">
 <div class="modal">
-<h3 class="font-semibold mb-2">➕ Thêm công việc</h3>
+<h3 class="font-semibold mb-2">➕ Công việc</h3>
 
 <input id="mTitle" class="w-full border p-2 rounded mb-2" placeholder="Tên công việc">
 
 <select id="mRole" class="w-full border p-2 rounded mb-2">
-<option value="GVDL">GVDL</option><option value="GVCN">GVCN</option>
-<option value="TTCM">TTCM</option><option value="DANG">Đảng viên</option>
-<option value="DOAN">Đoàn viên</option><option value="DOI">Hỗ trợ Đội</option>
-<option value="KHAC">Khác</option>
+  <option value="GVDL">GVDL</option>
+  <option value="GVCN">GVCN</option>
+  <option value="TTCM">TTCM</option>
+  <option value="DANG">Đảng viên</option>
+  <option value="DOAN">Đoàn viên</option>
+  <option value="DOI">Hỗ trợ Đội</option>
+  <option value="KHAC">Khác</option>
 </select>
 
-<label>Bắt đầu</label>
-<input id="mStart" type="datetime-local" class="w-full border p-2 rounded mb-2" onchange="syncEnd()">
-<label>Kết thúc</label>
-<input id="mEnd" type="datetime-local" class="w-full border p-2 rounded mb-2">
+<textarea id="mDetail" class="w-full border p-2 rounded mb-2"
+ placeholder="Chi tiết công việc"></textarea>
+
+<label class="text-xs">Bắt đầu</label>
+<input id="mStart" type="datetime-local"
+ class="w-full border p-2 rounded mb-2" onchange="syncEnd()">
+
+<label class="text-xs">Kết thúc</label>
+<input id="mEnd" type="datetime-local"
+ class="w-full border p-2 rounded mb-2">
 
 <select id="mMode" class="w-full border p-2 rounded mb-2">
-<option value="FIXED">CV đúng hạn</option>
-<option value="FLEX">CV linh động</option>
+  <option value="FIXED">CV đúng hạn</option>
+  <option value="FLEX">CV linh động</option>
 </select>
 
 <div class="border p-2 rounded mb-2 text-sm">
@@ -102,23 +141,27 @@
 </div>
 
 <script>
-const ROLE_COLOR={GVDL:'#2563eb',GVCN:'#16a34a',TTCM:'#7c3aed',DANG:'#dc2626',DOAN:'#f97316',DOI:'#06b6d4',KHAC:'#6b7280'};
+const ROLE_COLOR={
+GVDL:'#2563eb',GVCN:'#16a34a',TTCM:'#7c3aed',
+DANG:'#dc2626',DOAN:'#f97316',DOI:'#06b6d4',KHAC:'#6b7280'
+};
+
 let tasks=JSON.parse(localStorage.getItem('tasks')||'[]');
-let viewDate=new Date(), selectedDate=new Date();
+let viewDate=new Date(), selectedDate=new Date(), editId=null;
 
 const toYMD=d=>d.toISOString().slice(0,10);
 const inRange=(d,s,e)=>d>=s && d<=e;
 
 function showTab(t){
-['month','day'].forEach(x=>document.getElementById('tab-'+x)?.classList.add('hidden'));
-document.getElementById('tab-'+t)?.classList.remove('hidden');
+['month','day','report','settings'].forEach(x=>document.getElementById('tab-'+x).classList.add('hidden'));
+document.getElementById('tab-'+t).classList.remove('hidden');
 if(t==='day') renderDay();
 }
 
 function changeMonth(s){viewDate.setMonth(viewDate.getMonth()+s);renderMonth();}
 
 function renderMonth(){
-const g=monthGrid; g.innerHTML='';
+monthGrid.innerHTML='';
 const y=viewDate.getFullYear(), m=viewDate.getMonth();
 monthTitle.innerText=`Tháng ${m+1}/${y}`;
 const first=new Date(y,m,1).getDay(), start=new Date(y,m,1-first);
@@ -131,33 +174,50 @@ cell.className='border rounded p-1 text-xs min-h-[60px]';
 if(d.getMonth()!==m) cell.classList.add('other-month');
 if(toYMD(d)===toYMD(new Date())) cell.classList.add('today');
 cell.innerHTML=`<div>${d.getDate()}</div>`;
+
 tasks.filter(t=>inRange(ymd,t.start.slice(0,10),t.end.slice(0,10)))
 .forEach(t=>{
 const dot=document.createElement('span');
-dot.className='dot'; dot.style.background=ROLE_COLOR[t.role];
+dot.className='dot';
+dot.style.background=ROLE_COLOR[t.role];
 cell.appendChild(dot);
 });
+
 cell.onclick=()=>{selectedDate=d;showTab('day')};
-g.appendChild(cell);
+monthGrid.appendChild(cell);
 }
+}
+
+function statusText(t){
+const now=new Date(), s=new Date(t.start), e=new Date(t.end);
+if(now<s && (s-now)>2*864e5) return 'Chưa bắt đầu';
+if(now<s && (s-now)<=864e5) return 'Sắp bắt đầu';
+if(now>=s && now<e) return 'Đang tiến hành';
+if(now>=e) return 'Kết thúc';
+return '';
 }
 
 function renderDay(){
 dayTitle.innerText='📅 '+selectedDate.toLocaleDateString('vi-VN');
 dayTasks.innerHTML='';
 const ymd=toYMD(selectedDate);
+
 tasks.filter(t=>inRange(ymd,t.start.slice(0,10),t.end.slice(0,10)))
 .forEach(t=>{
 dayTasks.innerHTML+=`
 <div class="border p-2 rounded">
-<b style="color:${ROLE_COLOR[t.role]}">${t.title}</b><br>
-${fmt(t.start)} → ${fmt(t.end)}
+<b style="color:${ROLE_COLOR[t.role]}">${t.title}</b>
+<span class="status ml-2">${statusText(t)}</span><br>
+${fmt(t.start)} → ${fmt(t.end)}<br>
+<button onclick="editTask(${t.id})">✏️</button>
+<button onclick="deleteTask(${t.id})">🗑️</button>
 </div>`;
 });
 }
 
 function openModal(){
 modalBg.style.display='flex';
+editId=null;
 const d=toYMD(selectedDate);
 mStart.value=d+'T07:00';
 mEnd.value=d+'T07:00';
@@ -166,18 +226,36 @@ function closeModal(){modalBg.style.display='none'}
 function syncEnd(){mEnd.value=mStart.value}
 
 function saveTask(){
-tasks.push({
-id:Date.now(),
+const obj={
+id:editId||Date.now(),
 title:mTitle.value,
+detail:mDetail.value,
 role:mRole.value,
 start:mStart.value,
 end:mEnd.value,
 mode:mMode.value,
 repeat:{h:rHour.checked,d:rDay.checked,m:rMonth.checked},
 notify:{n1d:n1d.checked,n1h:n1h.checked,nStart:nStart.checked,nHalf:nHalf.checked,nEnd1d:nEnd1d.checked,nEnd1h:nEnd1h.checked,nEnd:nEnd.checked}
-});
+};
+tasks=editId?tasks.map(t=>t.id===editId?obj:t):[...tasks,obj];
 localStorage.setItem('tasks',JSON.stringify(tasks));
-closeModal(); renderMonth();
+closeModal(); renderMonth(); renderDay();
+}
+
+function editTask(id){
+const t=tasks.find(x=>x.id===id);
+editId=id;
+mTitle.value=t.title; mRole.value=t.role;
+mStart.value=t.start; mEnd.value=t.end;
+modalBg.style.display='flex';
+}
+
+function deleteTask(id){
+if(confirm('Xóa công việc?')){
+tasks=tasks.filter(t=>t.id!==id);
+localStorage.setItem('tasks',JSON.stringify(tasks));
+renderMonth(); renderDay();
+}
 }
 
 function fmt(v){
@@ -187,5 +265,6 @@ return d.toLocaleDateString('vi-VN')+' - '+d.toLocaleTimeString('vi-VN',{hour:'2
 
 renderMonth();
 </script>
+
 </body>
 </html>
